@@ -12,6 +12,7 @@ from mako import exceptions
 from mako.lookup import TemplateLookup
 
 _app_config = {}
+_mako_template_lookup = None
 
 _DEFAULT_CONFIG = {
     'memcached_servers': [],
@@ -144,13 +145,14 @@ class HttpResponse(object):
         mime type. `headers` should be a dictionary with header names and
         values. `cookies` should be a dictionary with cookie names and values.
         '''
+        self.defined_headers = headers
         if isinstance(data, str) or isinstance(data, unicode):
             self.data = [data]
+            self.defined_headers['Content-Length'] = str(len(data))
         else:
             self.data = data
         self.status_code = status_code
         self.content_type = content_type
-        self.defined_headers = headers
         self.cookies = cookies
 
     @property
@@ -180,7 +182,7 @@ class HttpTemplateResponse(HttpResponse):
         mime type. `headers` should be a dictionary with header names and
         values. `cookies` should be a dictionary with cookie names and values.
         '''
-        rendered_template = mako_template_lookup.get_template(template).render(**context_dict)
+        rendered_template = _mako_template_lookup.get_template(template).render(**context_dict)
         HttpResponse.__init__(self,
             rendered_template,
             status_code=status_code,
@@ -219,6 +221,7 @@ class HttpException(Exception):
 
 
 def get_wsgi_app(app_config, routes):
+    global _app_config, _mako_template_lookup
     _app_config = app_config
 
     # Parse routes
@@ -240,7 +243,7 @@ def get_wsgi_app(app_config, routes):
 
     # Set up template lookup
     module_directory = tempfile.mkdtemp()
-    mako_template_lookup = TemplateLookup(directories=_get_config('template_path'), module_directory=module_directory)
+    _mako_template_lookup = TemplateLookup(directories=_get_config('template_path'), module_directory=module_directory)
 
     def _wsgi_app(environ, start_response):
         path_info = environ['PATH_INFO']
