@@ -21,13 +21,14 @@ def random_name():
 # Model
 class BirdLover(db.Model):
     fields = ['name', 'favorite_bird']
+    defaults = {'favorite_bird': 'sandpiper'}
     key = 'name'
     collection = 'birdlovers'
 
 
 # Request handler
 def index(request):
-    birdlover = BirdLover(random_name(), 'sandpiper')
+    birdlover = BirdLover(name=random_name())
     birdlover.save()
     return HttpTemplateResponse('index.html', {'bird_lovers': BirdLover.find()})
 

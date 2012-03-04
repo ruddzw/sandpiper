@@ -5,11 +5,18 @@ from sandpiper import _get_config
 
 class Model(object):
 
-    def __init__(self, *args):
-        if len(args) != len(self.fields):
-            raise Exception("Not the right number of arguments!")
+    def __init__(self, *args, **kwargs):
         for i, arg in enumerate(args):
             setattr(self, self.fields[i], arg)
+        for i, field in enumerate(self.fields):
+            val = None
+            if len(args) > i:
+                val = args[i]
+            elif field in kwargs:
+                val = kwargs[field]
+            elif field in self.defaults:
+                val = self.defaults[field]
+            setattr(self, field, val)
 
     @classmethod
     def from_dict(cls, d):
