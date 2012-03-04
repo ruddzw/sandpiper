@@ -1,13 +1,38 @@
 import os
+import random
 
 import sandpiper
-from sandpiper import HttpTemplateResponse
+from sandpiper import db, HttpTemplateResponse
 
 
+CONSONANTS = 'bcdfghjklmnpqrstvwxyz'
+VOWELS = 'aeiou'
+
+
+# Helper: generates a random CVCVC name
+def random_name():
+    return (random.choice(CONSONANTS) +
+        random.choice(VOWELS) +
+        random.choice(CONSONANTS) +
+        random.choice(VOWELS) +
+        random.choice(CONSONANTS))
+
+
+# Model
+class BirdLover(db.Model):
+    fields = ['name', 'favorite_bird']
+    key = 'name'
+    collection = 'birdlovers'
+
+
+# Request handler
 def index(request):
-    return HttpTemplateResponse('index.html', {})
+    birdlover = BirdLover(random_name(), 'sandpiper')
+    birdlover.save()
+    return HttpTemplateResponse('index.html', {'bird_lovers': BirdLover.find()})
 
 
+# Configuration and Routes
 app_dir = os.path.dirname(__file__)
 config = {
     'memcached_servers': ['localhost:11211'],
@@ -20,6 +45,7 @@ config = {
 routes = [(r'^/$', index)]
 
 
+# Create a WSGI App
 # Run with a WSGI server, e.g.:
 # gunicorn sample_app:app
 # Then view at http://localhost:8000

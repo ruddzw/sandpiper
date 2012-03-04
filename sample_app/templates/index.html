@@ -1,1 +1,15 @@
-<img src="/sandpiper.jpg" alt="Sandpiper">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sandpiper lovers</title>
+</head>
+<body>
+    <img src="/sandpiper.jpg" alt="Sandpiper">
+    <h1>Sandpiper Lovers</h1>
+    <ul>
+    % for bird_lover in bird_lovers:
+    <li>${bird_lover.name}</li>
+    % endfor
+    </ul>
+</body>
+</html>
