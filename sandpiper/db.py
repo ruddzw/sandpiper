@@ -24,10 +24,10 @@ class Model(object):
         return cls(*args)
 
     @classmethod
-    def find(cls, criteria={}):
+    def find(cls, **criteria):
         docs = _get_connection()[cls.collection].find(criteria)
-        users = [cls.from_dict(doc) for doc in docs]
-        return users
+        objs = [cls.from_dict(doc) for doc in docs]
+        return objs
 
     @classmethod
     def get_by_key(cls, key):
