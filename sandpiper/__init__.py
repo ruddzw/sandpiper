@@ -7,7 +7,6 @@ import tempfile
 import urllib
 import uuid
 
-import pylibmc
 from mako import exceptions
 from mako.lookup import TemplateLookup
 
@@ -15,7 +14,6 @@ _app_config = {}
 _mako_template_lookup = None
 
 _DEFAULT_CONFIG = {
-    'memcached_servers': [],
     'mongo_db': 'CHANGE_ME',
     'mongo_host': 'CHANGE_ME',
     'mongo_port': 'CHANGE_ME',
@@ -88,6 +86,9 @@ _STATUS_CODES = {
 }
 
 
+_SESSION_STORE = {}
+
+
 class HttpRequest(object):
     '''
     Object representing an HTTP request.
@@ -113,14 +114,7 @@ class HttpRequest(object):
         self.session = {}
         if 'sandpiper_session' in cookies:
             self.session_key = cookies['sandpiper_session']
-            if len(_get_config('memcached_servers')) > 0:
-                mc_session = pylibmc.Client(_get_config('memcached_servers')).get(self.session_key)
-                if mc_session is not None:
-                    self.session = mc_session
-                else:
-                    print 'WARNING! memcached is not up, sessions will not work.'
-            else:
-                print 'WARNING! memcached is not up, sessions will not work.'
+            self.session = _SESSION_STORE.get(self.session_key, {})
         else:
             self.session_key = str(uuid.uuid4())
 
@@ -255,9 +249,8 @@ def get_wsgi_app(app_config, routes):
                     args = (request,) + re_match.groups()
                     response = handler(*args)
                     if isinstance(response, HttpResponse):
-                        if len(_get_config('memcached_servers')) > 0:
-                            if pylibmc.Client(_get_config('memcached_servers')).set(request.session_key, request.session):
-                                response.cookies['sandpiper_session'] = request.session_key
+                        _SESSION_STORE.set(request.session_key, request.session)
+                        response.cookies['sandpiper_session'] = request.session_key
                         headers = [('Content-Type', response.content_type)] + response.headers
                         start_response(response.status_text, headers)
                         print path_info, response.status_text
