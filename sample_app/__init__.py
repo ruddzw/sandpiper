@@ -36,7 +36,6 @@ def index(request):
 # Configuration and Routes
 app_dir = os.path.dirname(__file__)
 config = {
-    'memcached_servers': ['localhost:11211'],
     'mongo_db': 'sample_app',
     'mongo_host': 'localhost',
     'mongo_port': '27017',
