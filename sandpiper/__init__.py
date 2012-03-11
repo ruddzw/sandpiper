@@ -249,7 +249,7 @@ def get_wsgi_app(app_config, routes):
                     args = (request,) + re_match.groups()
                     response = handler(*args)
                     if isinstance(response, HttpResponse):
-                        _SESSION_STORE.set(request.session_key, request.session)
+                        _SESSION_STORE[request.session_key] = request.session
                         response.cookies['sandpiper_session'] = request.session_key
                         headers = [('Content-Type', response.content_type)] + response.headers
                         start_response(response.status_text, headers)
