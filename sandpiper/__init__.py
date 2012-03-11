@@ -102,12 +102,12 @@ class HttpRequest(object):
         if len(self.environ['QUERY_STRING']) > 0:
             for get_piece in self.environ['QUERY_STRING'].split('&'):
                 key, val = get_piece.split('=')
-                self.get[urllib.unquote(key)] = urllib.unquote(val)
+                self.get[urllib.unquote(key)] = urllib.unquote_plus(val)
         if self.method == 'POST':
             post_data = self.environ['wsgi.input'].read()
             for post_piece in post_data.split('&'):
                 key, val = post_piece.split('=')
-                self.post[urllib.unquote(key)] = urllib.unquote(val)
+                self.post[urllib.unquote(key)] = urllib.unquote_plus(val)
 
         # Set up session
         cookies = self.cookies
